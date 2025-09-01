@@ -23,6 +23,7 @@ export function ClickbaitBuster({ onBack }: ClickbaitBusterProps) {
   const [currentChallenge, setCurrentChallenge] = useState(0);
   const [score, setScore] = useState(0);
   const [lives, setLives] = useState(3);
+  const [timeLeft, setTimeLeft] = useState(25); // Re-adding the timeLeft state
   
   const [gameState, setGameState] = useState<'playing' | 'feedback' | 'completed'>('playing');
   const [selectedAnswer, setSelectedAnswer] = useState<boolean | null>(null);
@@ -76,13 +77,23 @@ export function ClickbaitBuster({ onBack }: ClickbaitBusterProps) {
   const currentHeadline = challenges[currentChallenge];
 
   useEffect(() => {
-    if (gameState === 'playing' && timeLeft > 0) {
-      const timer = setTimeout(() => setTimeLeft(timeLeft - 1), 1000);
-      return () => clearTimeout(timer);
-    } else if (timeLeft === 0 && gameState === 'playing') {
-      handleTimeUp();
+    let timer: NodeJS.Timeout;
+    if (gameState === 'playing') {
+      setTimeLeft(25); // Reset time for new challenge
+      timer = setInterval(() => {
+        setTimeLeft(prevTime => {
+          if (prevTime <= 1) {
+            clearInterval(timer);
+            handleTimeUp();
+            return 0;
+          }
+          return prevTime - 1;
+        });
+      }, 1000);
     }
-  }, [timeLeft, gameState]);
+
+    return () => clearInterval(timer);
+  }, [gameState, currentChallenge]); // Dependencies: gameState and currentChallenge
 
   const handleTimeUp = () => {
     setLives(lives - 1);
