@@ -71,8 +71,8 @@ export function ImageDetective({ onBack }: ImageDetectiveProps) {
       redFlags: ["Exaggerated colors", "Unrealistic lighting", "Perfectly smooth gradients"],
       difficulty: 'medium',
       comparisonImages: [
-        { url: "../../../Public/sunrise_REAL.webp", isReal: true },
-        { url: "../../../Public/sunset_AI.png", isReal: false }
+        { url: "/sunrise_REAL.webp", isReal: true },
+        { url: "/sunset_AI.png", isReal: false }
       ]
     },
     {
@@ -83,8 +83,8 @@ export function ImageDetective({ onBack }: ImageDetectiveProps) {
       redFlags: ["Contextual clues", "Unusual details in the crowd", "Source verification"],
       difficulty: 'hard',
       comparisonImages: [
-        { url: "../../../Public/tatizo_REAL.webp", isReal: true },
-        { url: "../../../Public/tatizo_AI.png", isReal: false }
+        { url: "/tatizo_REAL.webp", isReal: true },
+        { url: "/tatizo_AI.png", isReal: false }
       ]
     },
     {
