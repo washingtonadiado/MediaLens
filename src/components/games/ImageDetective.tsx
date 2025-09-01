@@ -9,12 +9,14 @@ interface ImageDetectiveProps {
 
 interface ImageChallenge {
   id: number;
-  imageUrl: string;
-  isReal: boolean;
   title: string;
   explanation: string;
   redFlags: string[];
   difficulty: 'easy' | 'medium' | 'hard';
+  type: 'single' | 'comparison';
+  imageUrl?: string;
+  isReal?: boolean;
+  comparisonImages?: { url: string; isReal: boolean }[];
 }
 
 export function ImageDetective({ onBack }: ImageDetectiveProps) {
@@ -31,6 +33,7 @@ export function ImageDetective({ onBack }: ImageDetectiveProps) {
   const challenges: ImageChallenge[] = [
     {
       id: 1,
+      type: 'single',
       imageUrl: "https://images.pexels.com/photos/1181673/pexels-photo-1181673.jpeg",
       isReal: true,
       title: "Street Photography",
@@ -40,6 +43,7 @@ export function ImageDetective({ onBack }: ImageDetectiveProps) {
     },
     {
       id: 2,
+      type: 'single',
       imageUrl: "https://images.pexels.com/photos/3861969/pexels-photo-3861969.jpeg",
       isReal: false,
       title: "Portrait with Unusual Lighting",
@@ -48,7 +52,44 @@ export function ImageDetective({ onBack }: ImageDetectiveProps) {
       difficulty: 'medium'
     },
     {
-      id: 3,
+        id: 3,
+        type: 'comparison',
+        title: "Which Portrait is Real?",
+        explanation: "The image on the right shows signs of AI generation, such as unnatural skin texture and inconsistent background details. The image on the left is a real photograph.",
+        redFlags: ["Unnatural skin texture", "Inconsistent background", "Asymmetrical features"],
+        difficulty: 'hard',
+        comparisonImages: [
+          { url: "https://images.pexels.com/photos/415829/pexels-photo-415829.jpeg", isReal: true },
+          { url: "https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg", isReal: false }
+        ]
+    },
+    {
+      id: 4,
+      type: 'comparison',
+      title: "Which Sunrise is Real?",
+      explanation: "The AI-generated sunset on the right has an overly vibrant and dramatic sky that is uncommon in real life. The real sunrise on the left has more natural lighting and cloud patterns.",
+      redFlags: ["Exaggerated colors", "Unrealistic lighting", "Perfectly smooth gradients"],
+      difficulty: 'medium',
+      comparisonImages: [
+        { url: "../../../Public/sunrise_REAL.webp", isReal: true },
+        { url: "../../../Public/sunset_AI.png", isReal: false }
+      ]
+    },
+    {
+      id: 5,
+      type: 'comparison',
+      title: "Which of these depicts a real event?",
+      explanation: "The image on the right is AI-generated. While it looks realistic, it depicts an event that did not happen. The image on the left is a real photo of a real event.",
+      redFlags: ["Contextual clues", "Unusual details in the crowd", "Source verification"],
+      difficulty: 'hard',
+      comparisonImages: [
+        { url: "../../../Public/tatizo_REAL.webp", isReal: true },
+        { url: "../../../Public/tatizo_AI.png", isReal: false }
+      ]
+    },
+    {
+      id: 6,
+      type: 'single',
       imageUrl: "https://images.pexels.com/photos/1181271/pexels-photo-1181271.jpeg",
       isReal: true,
       title: "Architecture Photography",
@@ -57,7 +98,8 @@ export function ImageDetective({ onBack }: ImageDetectiveProps) {
       difficulty: 'easy'
     },
     {
-      id: 4,
+      id: 7,
+      type: 'single',
       imageUrl: "https://images.pexels.com/photos/3184298/pexels-photo-3184298.jpeg",
       isReal: false,
       title: "Perfect Portrait",
@@ -94,6 +136,16 @@ export function ImageDetective({ onBack }: ImageDetectiveProps) {
       setLives(lives - 1);
     }
     
+    setGameState('feedback');
+  };
+
+  const handleComparisonAnswer = (isReal: boolean) => {
+    setSelectedAnswer(isReal);
+    if (isReal) {
+      setScore(score + 25);
+    } else {
+      setLives(lives - 1);
+    }
     setGameState('feedback');
   };
 
@@ -211,65 +263,92 @@ export function ImageDetective({ onBack }: ImageDetectiveProps) {
 
       {gameState === 'playing' && (
         <div>
-          <div className="text-center mb-8">
-            <h2 className="text-xl font-bold text-gray-900 mb-2">Is this image REAL or AI-GENERATED?</h2>
-            <p className="text-gray-600">Look for inconsistencies, unnatural elements, and digital artifacts</p>
-          </div>
+          {currentImg.type === 'single' && (
+            <div>
+              <div className="text-center mb-8">
+                <h2 className="text-xl font-bold text-gray-900 mb-2">Is this image REAL or AI-GENERATED?</h2>
+                <p className="text-gray-600">Look for inconsistencies, unnatural elements, and digital artifacts</p>
+              </div>
 
-          <div className="grid lg:grid-cols-3 gap-8">
-            {/* Image */}
-            <div className="lg:col-span-2">
-              <div className="relative bg-white rounded-xl shadow-lg overflow-hidden">
-                <img 
-                  src={currentImg.imageUrl} 
-                  alt={currentImg.title}
-                  className="w-full h-96 object-cover"
-                />
-                <button
-                  onClick={() => setZoomedImage(currentImg.imageUrl)}
-                  className="absolute top-4 right-4 bg-white bg-opacity-90 p-2 rounded-full hover:bg-opacity-100 transition-all"
-                >
-                  <ZoomIn className="h-5 w-5 text-gray-700" />
-                </button>
-                <div className="p-4">
-                  <h3 className="font-bold text-gray-900">{currentImg.title}</h3>
-                  <div className="flex items-center mt-2 text-sm text-gray-600">
-                    <Eye className="h-4 w-4 mr-1" />
-                    Difficulty: <span className="ml-1 capitalize">{currentImg.difficulty}</span>
+              <div className="grid lg:grid-cols-3 gap-8">
+                {/* Image */}
+                <div className="lg:col-span-2">
+                  <div className="relative bg-white rounded-xl shadow-lg overflow-hidden">
+                    <img 
+                      src={currentImg.imageUrl} 
+                      alt={currentImg.title}
+                      className="w-full h-96 object-cover"
+                    />
+                    <button
+                      onClick={() => setZoomedImage(currentImg.imageUrl ?? null)}
+                      className="absolute top-4 right-4 bg-white bg-opacity-90 p-2 rounded-full hover:bg-opacity-100 transition-all"
+                    >
+                      <ZoomIn className="h-5 w-5 text-gray-700" />
+                    </button>
+                    <div className="p-4">
+                      <h3 className="font-bold text-gray-900">{currentImg.title}</h3>
+                      <div className="flex items-center mt-2 text-sm text-gray-600">
+                        <Eye className="h-4 w-4 mr-1" />
+                        Difficulty: <span className="ml-1 capitalize">{currentImg.difficulty}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Controls */}
+                <div className="space-y-6">
+                  <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                    <h4 className="font-bold text-yellow-800 mb-2">Detection Tips:</h4>
+                    <ul className="text-sm text-yellow-700 space-y-1">
+                      <li>• Check for unnatural lighting</li>
+                      <li>• Look at facial features and symmetry</li>
+                      <li>• Examine background consistency</li>
+                      <li>• Notice texture and skin appearance</li>
+                      <li>• Check for digital artifacts</li>
+                    </ul>
+                  </div>
+
+                  <div className="space-y-4">
+                    <button
+                      onClick={() => handleAnswer(true)}
+                      className="w-full bg-green-600 text-white py-4 px-6 rounded-lg font-medium hover:bg-green-700 transition-colors"
+                    >
+                      ✓ REAL IMAGE
+                    </button>
+                    <button
+                      onClick={() => handleAnswer(false)}
+                      className="w-full bg-red-600 text-white py-4 px-6 rounded-lg font-medium hover:bg-red-700 transition-colors"
+                    >
+                      ✗ AI-GENERATED
+                    </button>
                   </div>
                 </div>
               </div>
             </div>
+          )}
 
-            {/* Controls */}
-            <div className="space-y-6">
-              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                <h4 className="font-bold text-yellow-800 mb-2">Detection Tips:</h4>
-                <ul className="text-sm text-yellow-700 space-y-1">
-                  <li>• Check for unnatural lighting</li>
-                  <li>• Look at facial features and symmetry</li>
-                  <li>• Examine background consistency</li>
-                  <li>• Notice texture and skin appearance</li>
-                  <li>• Check for digital artifacts</li>
-                </ul>
+          {currentImg.type === 'comparison' && (
+            <div>
+              <div className="text-center mb-8">
+                <h2 className="text-xl font-bold text-gray-900 mb-2">Which image is REAL?</h2>
+                <p className="text-gray-600">Click on the image you believe is the genuine photograph.</p>
               </div>
-
-              <div className="space-y-4">
-                <button
-                  onClick={() => handleAnswer(true)}
-                  className="w-full bg-green-600 text-white py-4 px-6 rounded-lg font-medium hover:bg-green-700 transition-colors"
-                >
-                  ✓ REAL IMAGE
-                </button>
-                <button
-                  onClick={() => handleAnswer(false)}
-                  className="w-full bg-red-600 text-white py-4 px-6 rounded-lg font-medium hover:bg-red-700 transition-colors"
-                >
-                  ✗ AI-GENERATED
-                </button>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                {currentImg.comparisonImages?.map((image, index) => (
+                  <div key={index} className="relative bg-white rounded-xl shadow-lg overflow-hidden cursor-pointer" onClick={() => handleComparisonAnswer(image.isReal)}>
+                    <img 
+                      src={image.url} 
+                      alt={`Comparison image ${index + 1}`}
+                      className="w-full h-96 object-cover"
+                    />
+                    <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black to-transparent p-4">
+                      <h3 className="font-bold text-white text-lg">Image {index + 1}</h3>
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
-          </div>
+          )}
         </div>
       )}
 
@@ -284,12 +363,12 @@ export function ImageDetective({ onBack }: ImageDetectiveProps) {
                   <p className="text-gray-600">You ran out of time to analyze</p>
                 </div>
               </div>
-            ) : selectedAnswer === currentImg.isReal ? (
+            ) : selectedAnswer ? (
               <div className="flex items-center justify-center mb-4">
                 <CheckCircle className="h-12 w-12 text-green-500 mr-2" />
                 <div>
                   <h3 className="text-xl font-bold text-green-700">Excellent Detection!</h3>
-                  <p className="text-gray-600">+15 points</p>
+                  <p className="text-gray-600">+ {currentImg.type === 'comparison' ? 25 : 15} points</p>
                 </div>
               </div>
             ) : (
