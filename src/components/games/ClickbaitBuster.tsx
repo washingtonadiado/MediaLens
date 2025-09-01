@@ -23,7 +23,7 @@ export function ClickbaitBuster({ onBack }: ClickbaitBusterProps) {
   const [currentChallenge, setCurrentChallenge] = useState(0);
   const [score, setScore] = useState(0);
   const [lives, setLives] = useState(3);
-  const [timeLeft, setTimeLeft] = useState(25);
+  
   const [gameState, setGameState] = useState<'playing' | 'feedback' | 'completed'>('playing');
   const [selectedAnswer, setSelectedAnswer] = useState<boolean | null>(null);
 
